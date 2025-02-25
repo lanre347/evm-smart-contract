@@ -70,7 +70,7 @@ def send_eth_to_contract(private_key, repetitions, amount):
 
         time.sleep(5)
 
-    print("Task done! Now go say Thank You to Petrate")
+    print("Task done! Thank You Tcode")
 
 # Main script
 if __name__ == "__main__":
