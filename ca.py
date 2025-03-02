@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
 from web3 import Web3
 import time
 import random
 import requests
+from datetime import datetime, timedelta
 
 # Connect to the Monad network via Infura RPC
 infura_url = "https://testnet-rpc.monad.xyz"
@@ -9,11 +11,14 @@ web3 = Web3(Web3.HTTPProvider(infura_url, request_kwargs={'timeout': 60}))
 
 # Check if the connection is successful
 if not web3.is_connected():
-    raise Exception("Failed to connect to Optimism network")
+    raise Exception("Failed to connect to Monad network")
 
 # Constants
-CHAIN_ID = 10143  # Optimism Chain ID
+CHAIN_ID = 10143  # Monad Chain ID
 MAX_RETRIES = 3  # Maximum retries per transaction
+PRIVATE_KEY = "YOUR-PRIVATE-KEY-HERE"  # Hardcoded private key (replace with caution)
+INTERVAL_MINUTES = 720  # Interval in minutes for automatic execution
+PREVIOUS_CHOICE = None  # Store the previous choice
 
 # Function to generate a random contract address
 def generate_random_contract_address():
@@ -24,16 +29,13 @@ def generate_random_wallet_address():
     random_address = "0x" + "".join(random.choices("0123456789abcdef", k=40))
     return Web3.to_checksum_address(random_address)
 
-# Note: The function to generate human-readable random contract details has been removed.
-
-# Function to send ETH transaction to a randomly generated contract address
-def send_eth_to_contract(private_key, repetitions, amount):
+# Function to send ETH transaction
+def send_eth_transaction(private_key, repetitions, amount, to_contracts=True):
     sender_address = web3.eth.account.from_key(private_key).address
     value_to_send = web3.to_wei(amount, 'ether')
 
     for i in range(repetitions):
-        to_address = generate_random_contract_address()
-        # Removed the generation and printing of contract details
+        to_address = generate_random_contract_address() if to_contracts else generate_random_wallet_address()
 
         for attempt in range(MAX_RETRIES):
             try:
@@ -70,21 +72,38 @@ def send_eth_to_contract(private_key, repetitions, amount):
 
         time.sleep(5)
 
-    print("Task done! Thank You Tcode")
+    print("Daily transfer task completed!")
 
-# Main script
-if __name__ == "__main__":
-    private_key = input("Enter your private key: ")
-    repetitions = int(input("How many times do you want to perform the transaction? "))
-    choice = input("Do you want to send 0 ETH to contracts (1), 0.00001 ETH to wallets (2), or send a custom ETH amount to contracts (3)? Enter 1, 2, or 3: ")
-    
-    if choice == "1":
-        send_eth_to_contract(private_key, repetitions, 0)
-    elif choice == "2":
-        send_eth_to_contract(private_key, repetitions, 0.00001)
-    elif choice == "3":
-        amount = float(input("Enter the amount of ETH to send: "))
-        send_eth_to_contract(private_key, repetitions, amount)
+# Function to automate daily transfers
+def automate_daily_transfers():
+    global PREVIOUS_CHOICE
+    if PREVIOUS_CHOICE is None:
+        print("Select the transaction type for today:")
+        print("1: Send 0 ETH to contracts")
+        print("2: Send 0.0001 ETH to wallets")
+        PREVIOUS_CHOICE = input("Enter 1 or 2: ")
     else:
-        print("Invalid choice. Exiting.")
+        print(f"Using previous choice: {PREVIOUS_CHOICE}")
+    
+    repetitions = 5  # Set how many times to perform transaction daily
+    
+    if PREVIOUS_CHOICE == "1":
+        send_eth_transaction(PRIVATE_KEY, repetitions, 0, to_contracts=True)
+    elif PREVIOUS_CHOICE == "2":
+        send_eth_transaction(PRIVATE_KEY, repetitions, 0.0001, to_contracts=False)
+    else:
+        print("Invalid choice. Skipping today's transfer.")
 
+# Initiate the first transaction immediately
+automate_daily_transfers()
+
+# Schedule the function to run at a set interval
+next_run = datetime.now() + timedelta(minutes=INTERVAL_MINUTES)
+while True:
+    now = datetime.now()
+    if now >= next_run:
+        automate_daily_transfers()
+        next_run = now + timedelta(minutes=INTERVAL_MINUTES)
+    remaining_time = next_run - now
+    print(f"Next transaction in: {remaining_time.seconds // 60} minutes and {remaining_time.seconds % 60} seconds", end="\r")
+    time.sleep(1)  # Check every 1 seconds
