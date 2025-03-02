@@ -15,6 +15,13 @@ cd evm-smart-contract
 ```
 pip install web3
 ```
+
+Edit Details:
+
+```
+nano ca.py
+```
+
 ```
 screen -S ca
 ```
