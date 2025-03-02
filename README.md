@@ -1,7 +1,7 @@
 # Create Evm Smart Contracts and Auto Transfer Between Wallets
-# Script that creates random contracts and interact with them
-# Auto send eth to random wallets
-# Automate Daily Transactions
+Script that creates random contracts and interact with them
+Auto send eth to random wallets
+Automate Daily Transactions
 
 # How to use:
 Install Dependency
